@@ -10,36 +10,56 @@ canvas.height = 450; // Base height (16:9 aspect ratio)
 let gameRunning = true;
 let messageTimeout;
 
+// Define the game's color palette
+// These colors are used for both player and platforms
+const gameColors = {
+    MAGENTA: '#FF00FF', // Player's initial color
+    BLUE: '#0099FF',
+    YELLOW: '#FFCC00',
+    ORANGE: '#FF6600',
+    PURPLE: '#CC00FF',
+    CYAN: '#00FFCC',
+    GROUND: '#00CC00', // Special color for the ground (always solid)
+    BACKGROUND: '#333333' // Canvas background color
+};
+
 // Player object
 const player = {
     x: 50,
     y: canvas.height - 70, // Start above the ground
     width: 30,
     height: 30,
-    color: '#FF00FF', // Magenta retro color
     dx: 0, // Horizontal velocity
     dy: 0, // Vertical velocity
     speed: 5,
     jumpStrength: -10, // Negative for upward movement
     gravity: 0.3,
-    onGround: false // True if player is currently on a platform
+    onGround: false, // True if player is currently on a platform
+    // New color properties for player
+    colorPalette: [gameColors.MAGENTA, gameColors.BLUE], // Player can cycle between these colors
+    currentColorIndex: 0, // Start with the first color in the palette (MAGENTA)
+    get currentColor() { // Getter to always return the current hex color string
+        return this.colorPalette[this.currentColorIndex];
+    }
 };
 
 // Platforms array
 const platforms = [
-    // Ground platform
-    { x: 0, y: canvas.height - 40, width: canvas.width, height: 40, color: '#00CC00' }, // Dark green ground
-    // Other platforms
-    { x: 100, y: canvas.height - 150, width: 120, height: 20, color: '#0099FF' }, // Blue platform
-    { x: 300, y: canvas.height - 250, width: 100, height: 20, color: '#FFCC00' }, // Yellow platform
-    { x: 500, y: canvas.height - 180, width: 150, height: 20, color: '#FF6600' }, // Orange platform
-    { x: 650, y: canvas.height - 300, width: 80, height: 20, color: '#CC00FF' }, // Purple platform
-    { x: 20, y: canvas.height - 350, width: 90, height: 20, color: '#00FFCC' } // Cyan platform
+    // Ground platform - always solid, regardless of player color
+    // 'isNeutralGround: true' makes it a special case for collision
+    { x: 0, y: canvas.height - 40, width: canvas.width, height: 40, color: gameColors.GROUND, isNeutralGround: true },
+    // Other platforms with specific colors that must match the player's color
+    { x: 100, y: canvas.height - 150, width: 120, height: 20, color: gameColors.BLUE },
+    { x: 300, y: canvas.height - 250, width: 100, height: 20, color: gameColors.MAGENTA },
+    { x: 500, y: canvas.height - 180, width: 150, height: 20, color: gameColors.BLUE },
+    { x: 650, y: canvas.height - 300, width: 80, height: 20, color: gameColors.MAGENTA },
+    { x: 20, y: canvas.height - 350, width: 90, height: 20, color: gameColors.BLUE }
 ];
 
 // Input handling
 const keys = {}; // Stores the state of each key (true if pressed, false if released)
 let canJump = true; // Controls single jump per spacebar press
+let canChangeColor = true; // Controls single color change per 'C' key press
 
 // Event listener for key presses
 window.addEventListener('keydown', (e) => {
@@ -56,6 +76,15 @@ window.addEventListener('keydown', (e) => {
             canJump = false;                 // Prevent immediate re-jumping until space is released
         }
     }
+
+    // Handle color change key (e.g., 'KeyC')
+    if (e.code === 'KeyC' && canChangeColor) {
+        // Cycle to the next color in the palette, wrapping around to the start
+        player.currentColorIndex = (player.currentColorIndex + 1) % player.colorPalette.length;
+        // Show a message indicating the new color
+        showMessage(`Color changed to ${player.currentColor}`, 1000);
+        canChangeColor = false; // Prevent rapid cycling if 'C' is held down
+    }
 });
 
 // Event listener for key releases
@@ -66,6 +95,11 @@ window.addEventListener('keyup', (e) => {
     // Reset canJump flag when spacebar is released
     if (e.code === 'Space') {
         canJump = true; // Player can jump again when spacebar is pressed next
+    }
+
+    // Reset canChangeColor flag when 'C' is released
+    if (e.code === 'KeyC') {
+        canChangeColor = true; // Player can change color again
     }
 });
 
@@ -124,32 +158,43 @@ function update() {
     // then check for collisions to confirm if they are.
     player.onGround = false;
 
-    // Platform collision detection and resolution
+    // Platform collision detection and resolution with color check
     for (const platform of platforms) {
         if (checkCollision(player, platform)) {
-            // Collision from top (landing on a platform)
-            // Check if player was above the platform in the previous frame and is falling
-            if (player.dy > 0 && player.y + player.height - player.dy <= platform.y) {
-                player.y = platform.y - player.height; // Snap player to the top of the platform
-                player.dy = 0; // Stop vertical movement
-                player.onGround = true; // Player is now on the ground
-            }
-            // Collision from bottom (jumping into a platform from below)
-            // Check if player was below the platform in the previous frame and is moving up
-            else if (player.dy < 0 && player.y - player.dy >= platform.y + platform.height) {
-                player.y = platform.y + platform.height; // Snap player to the bottom of the platform
-                player.dy = 0; // Reverse vertical movement (bounce off, or stop upward)
-            }
-            // Collision from sides (moving horizontally into a platform)
-            // Check if player was to the left/right of the platform in the previous frame
-            else {
-                if (player.dx > 0 && player.x + player.width - player.dx <= platform.x) {
-                    player.x = platform.x - player.width; // Snap to left side of platform
-                    player.dx = 0; // Stop horizontal movement
-                } else if (player.dx < 0 && player.x - player.dx >= platform.x + platform.width) {
-                    player.x = platform.x + platform.width; // Snap to right side of platform
-                    player.dx = 0; // Stop horizontal movement
+            // Check if player's current color matches platform's color
+            // OR if it's a neutral ground platform (like the main ground)
+            const colorsMatch = player.currentColor === platform.color;
+            const isNeutral = platform.isNeutralGround;
+
+            if (colorsMatch || isNeutral) {
+                // Apply collision resolution only if colors match or it's neutral ground
+                // Collision from top (landing on a platform)
+                // Check if player was above the platform in the previous frame and is falling
+                if (player.dy > 0 && player.y + player.height - player.dy <= platform.y) {
+                    player.y = platform.y - player.height; // Snap player to the top of the platform
+                    player.dy = 0; // Stop vertical movement
+                    player.onGround = true; // Player is now on the ground
                 }
+                // Collision from bottom (jumping into a platform from below)
+                // Check if player was below the platform in the previous frame and is moving up
+                else if (player.dy < 0 && player.y - player.dy >= platform.y + platform.height) {
+                    player.y = platform.y + platform.height; // Snap player to the bottom of the platform
+                    player.dy = 0; // Reverse vertical movement (bounce off, or stop upward)
+                }
+                // Collision from sides (moving horizontally into a platform)
+                // Check if player was to the left/right of the platform in the previous frame
+                else {
+                    if (player.dx > 0 && player.x + player.width - player.dx <= platform.x) {
+                        player.x = platform.x - player.width; // Snap to left side of platform
+                        player.dx = 0; // Stop horizontal movement
+                    } else if (player.dx < 0 && player.x - player.dx >= platform.x + platform.width) {
+                        player.x = platform.x + platform.width; // Snap to right side of platform
+                        player.dx = 0; // Stop horizontal movement
+                    }
+                }
+            } else {
+                // If colors don't match and it's not neutral ground, player falls through.
+                // No collision resolution is applied, allowing the player to pass through.
             }
         }
     }
@@ -160,6 +205,8 @@ function update() {
         player.y = canvas.height - 70;
         player.dy = 0;
         showMessage("You fell! Try again.", 2000);
+        // Optionally, reset player color to initial if they fall off
+        player.currentColorIndex = 0;
     }
 }
 
@@ -174,8 +221,8 @@ function draw() {
         ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
     }
 
-    // Draw player
-    ctx.fillStyle = player.color;
+    // Draw player using its current color
+    ctx.fillStyle = player.currentColor; // Use the getter to get the current color
     ctx.fillRect(player.x, player.y, player.width, player.height);
 }
 
@@ -215,5 +262,5 @@ window.onload = function () {
     resizeCanvas(); // Set initial canvas size based on window size
     window.addEventListener('resize', resizeCanvas); // Listen for window resize events
     gameLoop(); // Start the main game loop
-    showMessage("Welcome to Retro Jump! Navigate the platforms.", 3000); // Show initial message
+    showMessage("Welcome to Retro Jump! Press 'C' to change color!", 3000); // Show initial message
 };
