@@ -1,3 +1,6 @@
+/* Import the retro font */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 body {
     display: flex;
     flex-direction: column;
@@ -5,46 +8,46 @@ body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    background-color: #1a1a1a;
-    font-family: "Press Start 2P", cursive;
-    color: #eeeeee;
-    overflow: hidden;
+    background-color: #1a1a1a; /* Dark background */
+    font-family: 'Press Start 2P', cursive; /* Retro font */
+    color: #eee;
+    overflow: hidden; /* Prevent scrollbars */
 }
 
 h1 {
-    color: #00ff00;
+    color: #00ff00; /* Green retro text */
     text-shadow: 2px 2px #009900;
     margin-bottom: 20px;
-    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    font-size: clamp(1.5rem, 5vw, 2.5rem); /* Responsive font size */
     text-align: center;
 }
 
 canvas {
-    background-color: #333333;
-    border: 5px solid #00ff00;
+    background-color: #333333; /* Darker grey for game background */
+    border: 5px solid #00ff00; /* Green retro border */
     border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
-    display: block;
-    max-width: 90vw;
-    max-height: 80vh;
-    aspect-ratio: 16 / 9;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5); /* Green glow */
+    display: block; /* Remove extra space below canvas */
+    max-width: 90vw; /* Responsive width */
+    max-height: 80vh; /* Responsive height */
+    aspect-ratio: 16 / 9; /* Maintain aspect ratio */
 }
 
 .controls {
     margin-top: 20px;
     font-size: clamp(0.8rem, 2vw, 1.2rem);
     text-align: center;
-    color: #ffcc00;
+    color: #ffcc00; /* Yellow retro text */
 }
 
 .message-box {
-    background-color: #000000;
+    background-color: #000;
     border: 2px solid #ff0000;
     padding: 10px 20px;
     margin-top: 20px;
     border-radius: 5px;
     font-size: clamp(0.7rem, 1.8vw, 1rem);
-    color: #ff0000;
+    color: #ff0000; /* Red for messages */
     text-align: center;
-    display: none;
+    display: none; /* Hidden by default */
 }
