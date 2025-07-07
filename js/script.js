@@ -1,12 +1,16 @@
-const canvas = document.getElementById("gameCanvas");
+// Get the canvas and its 2D rendering context
+const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-canvas.width = 800;
-canvas.height = 450;
+// Set initial canvas dimensions (will be resized later for responsiveness)
+canvas.width = 800; // Base width
+canvas.height = 450; // Base height (16:9 aspect ratio)
 
+// Game state variables
 let gameRunning = true;
 let messageTimeout;
 
+// Player object
 const player = {
     x: 50,
     y: canvas.height - 70, // Start above the ground
@@ -35,25 +39,25 @@ const platforms = [
 
 // Input handling
 const keys = {};
-window.addEventListener("keydown", (e) => {
+window.addEventListener('keydown', (e) => {
     keys[e.code] = true;
     // Prevent default action for spacebar to avoid page scrolling
-    if (e.code === "Space") {
+    if (e.code === 'Space') {
         e.preventDefault();
     }
 });
-window.addEventListener("keyup", () => {
+window.addEventListener('keyup', (e) => {
     keys[e.code] = false;
 });
 
 // Function to show a message
 function showMessage(msg, duration = 3000) {
-    const messageBox = document.getElementById("messageBox");
+    const messageBox = document.getElementById('messageBox');
     messageBox.textContent = msg;
-    messageBox.style.display = "block";
+    messageBox.style.display = 'block';
     clearTimeout(messageTimeout);
     messageTimeout = setTimeout(() => {
-        messageBox.style.display = "none";
+        messageBox.style.display = 'none';
     }, duration);
 }
 
@@ -67,28 +71,27 @@ function checkCollision(rect1, rect2) {
 
 // Game update logic
 function update() {
-    if (!gameRunning)
-        return;
+    if (!gameRunning) return;
 
     // Apply gravity
     player.dy += player.gravity;
 
     // Horizontal movement
     player.dx = 0;
-    if (keys["ArrowLeft"]) {
+    if (keys['ArrowLeft']) {
         player.dx = -player.speed;
     }
-    if (keys["ArrowRight"]) {
+    if (keys['ArrowRight']) {
         player.dx = player.speed;
     }
 
     // Jump
-    if (keys["Space"] && player.onGround) {
+    if (keys['Space'] && player.onGround) {
         player.dy = player.jumpStrength;
         player.onGround = false;
     }
 
-    // update player position
+    // Update player position
     player.x += player.dx;
     player.y += player.dy;
 
@@ -104,7 +107,6 @@ function update() {
     player.onGround = false;
 
     // Platform collision
-
     for (const platform of platforms) {
         if (checkCollision(player, platform)) {
             // If player is falling and lands on top of a platform
@@ -116,7 +118,7 @@ function update() {
             // If player hits bottom of platform (jumping into it)
             else if (player.dy < 0 && player.y - player.dy >= platform.y + platform.height) {
                 player.y = platform.y + platform.height; // Snap to bottom
-                player.dy = 0; // stop upward movement
+                player.dy = 0; // Stop upward movement
             }
             // If player hits side of platform (horizontal collision)
             else if (player.x + player.width > platform.x && player.x < platform.x + platform.width) {
@@ -124,7 +126,7 @@ function update() {
                     player.x = platform.x - player.width; // Snap to left side
                     player.dx = 0;
                 } else if (player.dx < 0 && player.x - player.dx >= platform.x + platform.width) {
-                    player.x = platform.x + player.width; // Snap to right side
+                    player.x = platform.x + platform.width; // Snap to right side
                     player.dx = 0;
                 }
             }
@@ -142,7 +144,7 @@ function update() {
 
 // Drawing function
 function draw() {
-    // clear the canvas
+    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw platforms
@@ -160,9 +162,10 @@ function draw() {
 function gameLoop() {
     update();
     draw();
-    requestAnimationFrame(gameLoop); // request next frame
+    requestAnimationFrame(gameLoop); // Request next frame
 }
 
+// Responsive canvas resizing
 function resizeCanvas() {
     const aspectRatio = 16 / 9;
     let newWidth = window.innerWidth * 0.9;
@@ -181,9 +184,10 @@ function resizeCanvas() {
     // The CSS scales the canvas element, but the drawing context remains at 800x450
 }
 
+// Initialize game on window load
 window.onload = function () {
-    resizeCanvas(); // set initial size
-    window.addEventListener('resize', resizeCanvas);
-    gameLoop(); // start the game loop
-    showMessage("Welcome to Retro Color Jump!", 3000);
+    resizeCanvas(); // Set initial size
+    window.addEventListener('resize', resizeCanvas); // Listen for resize events
+    gameLoop(); // Start the game loop
+    showMessage("Welcome to Retro Jump!", 3000);
 };
