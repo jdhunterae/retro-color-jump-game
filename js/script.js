@@ -22,7 +22,7 @@ const player = {
     speed: 5,
     jumpStrength: -10, // Negative for upward movement
     gravity: 0.3,
-    onGround: false
+    onGround: false // True if player is currently on a platform
 };
 
 // Platforms array
@@ -38,96 +38,117 @@ const platforms = [
 ];
 
 // Input handling
-const keys = {};
+const keys = {}; // Stores the state of each key (true if pressed, false if released)
+let canJump = true; // Controls single jump per spacebar press
+
+// Event listener for key presses
 window.addEventListener('keydown', (e) => {
+    // Set the key's state to true when pressed
     keys[e.code] = true;
-    // Prevent default action for spacebar to avoid page scrolling
+
+    // Handle Spacebar for jumping
     if (e.code === 'Space') {
-        e.preventDefault();
+        e.preventDefault(); // Prevent default browser action (e.g., page scrolling)
+        // Allow jump only if player is on the ground AND canJump is true (meaning space was released previously)
+        if (player.onGround && canJump) {
+            player.dy = player.jumpStrength; // Apply upward velocity
+            player.onGround = false;         // Player is no longer on the ground
+            canJump = false;                 // Prevent immediate re-jumping until space is released
+        }
     }
 });
+
+// Event listener for key releases
 window.addEventListener('keyup', (e) => {
+    // Set the key's state to false when released
     keys[e.code] = false;
+
+    // Reset canJump flag when spacebar is released
+    if (e.code === 'Space') {
+        canJump = true; // Player can jump again when spacebar is pressed next
+    }
 });
 
-// Function to show a message
+// Function to show a message on the screen
 function showMessage(msg, duration = 3000) {
     const messageBox = document.getElementById('messageBox');
     messageBox.textContent = msg;
-    messageBox.style.display = 'block';
-    clearTimeout(messageTimeout);
+    messageBox.style.display = 'block'; // Make the message box visible
+    clearTimeout(messageTimeout); // Clear any existing timeout
+    // Set a timeout to hide the message after a specified duration
     messageTimeout = setTimeout(() => {
-        messageBox.style.display = 'none';
+        messageBox.style.display = 'none'; // Hide the message box
     }, duration);
 }
 
 // Collision detection function (AABB - Axis-Aligned Bounding Box)
 function checkCollision(rect1, rect2) {
+    // Check if the rectangles overlap on both X and Y axes
     return rect1.x < rect2.x + rect2.width &&
         rect1.x + rect1.width > rect2.x &&
         rect1.y < rect2.y + rect2.height &&
         rect1.y + rect1.height > rect2.y;
 }
 
-// Game update logic
+// Game update logic - called repeatedly to update game state
 function update() {
-    if (!gameRunning) return;
+    if (!gameRunning) return; // Stop updating if game is not running
 
-    // Apply gravity
+    // Apply gravity to player's vertical velocity
     player.dy += player.gravity;
 
-    // Horizontal movement
+    // Horizontal movement based on key states
+    // Reset horizontal velocity each frame to prevent continuous sliding
     player.dx = 0;
     if (keys['ArrowLeft']) {
-        player.dx = -player.speed;
+        player.dx = -player.speed; // Move left
     }
     if (keys['ArrowRight']) {
-        player.dx = player.speed;
+        player.dx = player.speed; // Move right
     }
 
-    // Jump
-    if (keys['Space'] && player.onGround) {
-        player.dy = player.jumpStrength;
-        player.onGround = false;
-    }
-
-    // Update player position
+    // Update player position based on velocities
     player.x += player.dx;
     player.y += player.dy;
 
     // Keep player within canvas bounds horizontally
     if (player.x < 0) {
-        player.x = 0;
+        player.x = 0; // Snap to left edge
     }
     if (player.x + player.width > canvas.width) {
-        player.x = canvas.width - player.width;
+        player.x = canvas.width - player.width; // Snap to right edge
     }
 
-    // Reset onGround flag for current frame
+    // Reset onGround flag at the beginning of each frame's update
+    // This is crucial: we assume the player is NOT on the ground,
+    // then check for collisions to confirm if they are.
     player.onGround = false;
 
-    // Platform collision
+    // Platform collision detection and resolution
     for (const platform of platforms) {
         if (checkCollision(player, platform)) {
-            // If player is falling and lands on top of a platform
+            // Collision from top (landing on a platform)
+            // Check if player was above the platform in the previous frame and is falling
             if (player.dy > 0 && player.y + player.height - player.dy <= platform.y) {
-                player.y = platform.y - player.height; // Snap to top of platform
+                player.y = platform.y - player.height; // Snap player to the top of the platform
                 player.dy = 0; // Stop vertical movement
-                player.onGround = true;
+                player.onGround = true; // Player is now on the ground
             }
-            // If player hits bottom of platform (jumping into it)
+            // Collision from bottom (jumping into a platform from below)
+            // Check if player was below the platform in the previous frame and is moving up
             else if (player.dy < 0 && player.y - player.dy >= platform.y + platform.height) {
-                player.y = platform.y + platform.height; // Snap to bottom
-                player.dy = 0; // Stop upward movement
+                player.y = platform.y + platform.height; // Snap player to the bottom of the platform
+                player.dy = 0; // Reverse vertical movement (bounce off, or stop upward)
             }
-            // If player hits side of platform (horizontal collision)
-            else if (player.x + player.width > platform.x && player.x < platform.x + platform.width) {
+            // Collision from sides (moving horizontally into a platform)
+            // Check if player was to the left/right of the platform in the previous frame
+            else {
                 if (player.dx > 0 && player.x + player.width - player.dx <= platform.x) {
-                    player.x = platform.x - player.width; // Snap to left side
-                    player.dx = 0;
+                    player.x = platform.x - player.width; // Snap to left side of platform
+                    player.dx = 0; // Stop horizontal movement
                 } else if (player.dx < 0 && player.x - player.dx >= platform.x + platform.width) {
-                    player.x = platform.x + platform.width; // Snap to right side
-                    player.dx = 0;
+                    player.x = platform.x + platform.width; // Snap to right side of platform
+                    player.dx = 0; // Stop horizontal movement
                 }
             }
         }
@@ -142,9 +163,9 @@ function update() {
     }
 }
 
-// Drawing function
+// Drawing function - called repeatedly to render game elements
 function draw() {
-    // Clear canvas
+    // Clear canvas for the new frame
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw platforms
@@ -158,36 +179,41 @@ function draw() {
     ctx.fillRect(player.x, player.y, player.width, player.height);
 }
 
-// Game loop
+// Game loop - the heart of the game, updates and draws frames
 function gameLoop() {
-    update();
-    draw();
-    requestAnimationFrame(gameLoop); // Request next frame
+    update(); // Update game state
+    draw();   // Draw updated state
+    requestAnimationFrame(gameLoop); // Request the next frame, creating a smooth animation loop
 }
 
 // Responsive canvas resizing
 function resizeCanvas() {
-    const aspectRatio = 16 / 9;
-    let newWidth = window.innerWidth * 0.9;
-    let newHeight = window.innerHeight * 0.8;
+    const aspectRatio = 16 / 9; // Define the desired aspect ratio for your game
+    let newWidth = window.innerWidth * 0.9; // Take 90% of window width
+    let newHeight = window.innerHeight * 0.8; // Take 80% of window height
 
+    // Adjust dimensions to maintain aspect ratio
     if (newWidth / newHeight > aspectRatio) {
         newWidth = newHeight * aspectRatio;
     } else {
         newHeight = newWidth / aspectRatio;
     }
 
+    // Apply the calculated dimensions to the canvas style (CSS scaling)
     canvas.style.width = `${newWidth}px`;
     canvas.style.height = `${newHeight}px`;
 
-    // For drawing, keep the internal resolution fixed to maintain pixel art scale
-    // The CSS scales the canvas element, but the drawing context remains at 800x450
+    // Important: For pixel art or fixed-resolution games, you often keep the internal
+    // canvas.width and canvas.height (drawing resolution) fixed, and let CSS scale it.
+    // If you wanted the game logic to adapt to different resolutions, you would update
+    // canvas.width and canvas.height here and adjust game elements accordingly.
+    // For this retro game, keeping internal resolution fixed simplifies drawing.
 }
 
 // Initialize game on window load
 window.onload = function () {
-    resizeCanvas(); // Set initial size
-    window.addEventListener('resize', resizeCanvas); // Listen for resize events
-    gameLoop(); // Start the game loop
-    showMessage("Welcome to Retro Jump!", 3000);
+    resizeCanvas(); // Set initial canvas size based on window size
+    window.addEventListener('resize', resizeCanvas); // Listen for window resize events
+    gameLoop(); // Start the main game loop
+    showMessage("Welcome to Retro Jump! Navigate the platforms.", 3000); // Show initial message
 };
