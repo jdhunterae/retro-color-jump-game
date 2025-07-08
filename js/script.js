@@ -105,7 +105,7 @@ const platforms = [
     { x: 300, y: canvas.height - 250, width: 100, height: 20, color: gameColors.MAGENTA, type: 'ability' },
     { x: 500, y: canvas.height - 180, width: 150, height: 20, color: gameColors.BLUE, type: 'ability' },
     { x: 650, y: canvas.height - 300, width: 80, height: 20, color: gameColors.MAGENTA, type: 'ability' },
-    { x: 20, y: canvas.height - 350, width: 90, height: 20, color: gameColors.BLUE, type: 'ability' }
+    { x: 20, y: canvas.height - 350, width: 90, height: 20, color: gameColors.YELLOW, type: 'ability' }
 ];
 
 // Input handling
