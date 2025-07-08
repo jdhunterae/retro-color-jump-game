@@ -14,10 +14,10 @@ export const player = {
     // Base speed and jump strength (defaults, will be modified by abilities)
     baseSpeed: 5,
     baseJumpStrength: -10, // Negative for upward movement
-    // Dynamic abilities - these will be updated based on player.color
     jumpsAvailable: 1, // How many jumps player has left in current airtime
     onGround: false, // True if player is currently on a platform
     platformUnderfoot: null, // Stores the platform object player is standing on
+    learnedAbilities: new Set(), // New: Stores colors of abilities
 
     // Getter for current speed, applying modifier
     get currentSpeed() {
@@ -60,6 +60,8 @@ export const player = {
         this.jumpsAvailable = this.maxJumps; // Reset jumps for new (initial) color
         this.onGround = false;
         this.platformUnderfoot = null;
+        // New: Add WHITE to learned abilities on reset
+        this.learnedAbilities.add(gameColors.WHITE);
     },
 
     // Handle color change
@@ -72,6 +74,7 @@ export const player = {
         this.color = newColor;
         this.jumpsAvailable = this.maxJumps; // Reset jumps for the new ability
         showMessage(this.abilityMessage, 1500);
+        this.learnedAbilities.add(newColor); // New: Add the new color
         return true; // Color successfully changed
     }
 };
