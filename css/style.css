@@ -41,27 +41,62 @@ canvas {
     color: #ffcc00; /* Yellow retro text */
 }
 
-/* Updated Styles for the Message Box */
+/* Base Styles for the Message Box */
 .message-box {
     background-color: rgba(0, 0, 0, 0.8); /* Slightly transparent background */
-    border: 2px solid #ff0000;
+    border: 2px solid; /* Border color will be set by type classes */
     padding: 10px 20px;
     border-radius: 5px;
     font-size: clamp(0.7rem, 1.8vw, 1rem);
-    color: #ff0000; /* Red for messages */
     text-align: center;
     display: none; /* Hidden by default */
     z-index: 100; /* Ensure it's above other elements */
 
-    /* New positioning for overlay */
+    /* Positioning for overlay */
     position: absolute;
     bottom: 50px; /* Position from the bottom of the viewport */
     left: 50%;
     transform: translateX(-50%); /* Center horizontally */
     min-width: 250px; /* Ensure it's wide enough */
     max-width: 80%; /* Don't let it get too wide */
-    box-shadow: 0 0 15px rgba(255, 0, 0, 0.5); /* Red glow for messages */
+    box-shadow: 0 0 15px; /* Shadow color will be set by type classes */
 }
+
+/* Message Type: Info (e.g., game start, ability change) */
+.message-box.info {
+    color: #00FFFF; /* Cyan text */
+    border-color: #00FFFF;
+    box-shadow-color: rgba(0, 255, 255, 0.5);
+}
+
+/* Message Type: Success (e.g., level loaded, ability acquired) */
+.message-box.success {
+    color: #66FF33; /* Neon green text */
+    border-color: #66FF33;
+    box-shadow-color: rgba(102, 255, 51, 0.5);
+}
+
+/* Message Type: Warning (e.g., cannot change color) */
+.message-box.warning {
+    color: #FFCC00; /* Yellow text */
+    border-color: #FFCC00;
+    box-shadow-color: rgba(255, 204, 0, 0.5);
+}
+
+/* Message Type: Error (e.g., player fell, invalid level) */
+.message-box.error {
+    color: #FF0033; /* Deep arcade red text */
+    border-color: #FF0033;
+    box-shadow-color: rgba(255, 0, 51, 0.5);
+}
+
+/* Message Type: Completion (e.g., level complete) */
+.message-box.completion {
+    color: #9900CC; /* Dark purple text */
+    border-color: #9900CC;
+    box-shadow-color: rgba(153, 0, 204, 0.5);
+}
+
 
 /* Styles for the Introduction Screen Overlay */
 .overlay {
