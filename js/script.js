@@ -19,6 +19,32 @@ const gameColors = {
     BACKGROUND: '#333333' // Canvas background color
 };
 
+// Define the abilities associated with each color
+// This is where you'd add new color-ability mappings
+const abilities = {
+    [gameColors.MAGENTA]: {
+        speedModifier: 2, // +2 to base speed
+        jumpStrengthModifier: 0, // No change to base jump strength
+        maxJumpsModifier: 0, // Single jump / no additional jumps
+        canStunEnemies: true, // Placeholder for future enemy interaction
+        message: "Ability: Increased Speed!"
+    },
+    [gameColors.BLUE]: {
+        speedModifier: 0, // No change to base speed
+        jumpStrengthModifier: 0, // -3 (more negative) to base jump strength = higher jump
+        maxJumpsModifier: 1, // +1 additional jump
+        canStunEnemies: false,
+        message: "Ability: High Jumap & Double Jump!"
+    },
+    [gameColors.YELLOW]: {
+        speedModifier: -2, // -2 to base speed
+        jumpStrengthModifier: 1, // +1 (less negative) to base jump strength = lower jump
+        maxJumpsModifier: 0, // Single jump / no additional jumps
+        canStunEnemies: false,
+        message: "Ability: Slow and Low Jump!"
+    },
+};
+
 // Player object
 const player = {
     x: 50,
@@ -33,14 +59,41 @@ const player = {
     baseSpeed: 5,
     baseJumpStrength: -10, // Negative for upward movement
     // Dynamic abilities - these will be updated based on player.color
-    currentSpeed: 5,
-    currentJumpStrength: -10,
     canDoubleJump: false,
-    canStunEnemies: false, // placeholder for future enemy interaction
     jumpsAvailable: 1, // How many jumps player has left in current airtime
-    maxJumps: 1, // Max jumps for current color (1 for single, 2 for double)
+    baseMaxJumps: 1, // Max jumps for current color (1 for single, 2 for double)
     onGround: false, // True if player is currently on a platform
-    platformUnderfoot: null // Stores the platform object player is standing on
+    platformUnderfoot: null, // Stores the platform object player is standing on
+
+    // Getter for current speed, applying modifier
+    get currentSpeed() {
+        const currentAbility = abilities[this.color];
+        return this.baseSpeed + (currentAbility ? currentAbility.speedModifier : 0);
+    },
+
+    // Getter for current jumpStrength, applying modifier
+    get currentJumpStrength() {
+        const currentAbility = abilities[this.color];
+        return this.baseJumpStrength + (currentAbility ? currentAbility.jumpStrengthModifier : 0);
+    },
+
+    // Getter for current maxJumps, applying modifier
+    get maxJumps() {
+        const currentAbility = abilities[this.color];
+        return this.baseMaxJumps + (currentAbility ? currentAbility.maxJumpsModifier : 0);
+    },
+
+    // Getter for canStunEnemies, applying ability modifier
+    get canStunEnemies() {
+        const currentAbility = abilities[this.color];
+        return currentAbility ? currentAbility.canStunEnemies : false;
+    },
+
+    // Getter for the ability message
+    get abilityMessage() {
+        const currentAbility = abilities[this.color];
+        return currentAbility ? currentAbility.message : "No special ability.";
+    },
 };
 
 // Platforms array
@@ -60,31 +113,25 @@ const keys = {}; // Stores the state of each key (true if pressed, false if rele
 let canJump = true; // Controls single jump per spacebar press
 let canChangeColor = true; // Controls single color change per 'C' key press
 
-// Function to update player abilities based on their current color
-function updatePlayerAbilities() {
-    // Reset abilities to default first
-    player.currentSpeed = player.baseSpeed;
-    player.currentJumpStrength = player.baseJumpStrength;
-    player.canDoubleJump = false;
-    player.maxJumps = 1; // Default to single jump
-    player.canStunEnemies = false; // Reset for future abilities
+// Function to show a message on the screen
+function showMessage(msg, duration = 3000) {
+    const messageBox = document.getElementById('messageBox');
+    messageBox.textContent = msg;
+    messageBox.style.display = 'block'; // Make the message box visible
+    clearTimeout(messageTimeout); // Clear any existing timeout
+    // Set a timeout to hide the message after a specified duration
+    messageTimeout = setTimeout(() => {
+        messageBox.style.display = 'none'; // Hide the message box
+    }, duration);
+}
 
-    // Apply abilities based on current player color
-    if (player.color === gameColors.BLUE) {
-        player.currentJumpStrength = -13; // Higher jump
-        player.canDoubleJump = true;
-        player.maxJumps = 2; // Allow double jump
-        showMessage("Ability: High Jump & Double Jump!", 1500);
-    } else if (player.color === gameColors.MAGENTA) {
-        player.currentSpeed = 7; // Higher jump
-        player.canStunEnemies = true; // Enable for future enemy logic
-        showMessage("Ability: Increased Speed!", 1500);
-    }
-    // Add more color-ability mappings here as you introduce new colors
-    // Ensure jumpsAvailable is reset to the new maxJumps if on ground
-    if (player.onGround) {
-        player.jumpsAvailable = player.maxJumps;
-    }
+// Collision detection function (AABB - Axis-Aligned Bounding Box)
+function checkCollision(rect1, rect2) {
+    // Check if the rectangles overlap on both X and Y axes
+    return rect1.x < rect2.x + rect2.width &&
+        rect1.x + rect1.width > rect2.x &&
+        rect1.y < rect2.y + rect2.height &&
+        rect1.y + rect1.height > rect2.y;
 }
 
 // Event listener for key presses
@@ -109,9 +156,16 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyC' && canChangeColor) {
         // only allow color change if player is on the ground AND on an 'ability' platform
         if (player.onGround && player.platformUnderfoot && player.platformUnderfoot.type === "ability") {
-            // Change player's color to color of the platform they are standing on
-            player.color = player.platformUnderfoot.color;
-            updatePlayerAbilities(); // Update abilities based on the new color
+            // Change player's color to the color of the platform they are standing on
+            // Only change if it's a different color to avoid re-applying same ability
+            if (player.color !== player.platformUnderfoot.color) {
+                player.color = player.platformUnderfoot.color;
+                // When color changes, reset jumps available for the new ability's new max jumps
+                player.jumpsAvailable = player.maxJumps;
+                showMessage(player.abilityMessage, 1500);
+            } else {
+                showMessage("Already have this ability!", 1000);
+            }
         } else if (player.onGround && player.platformUnderfoot && player.platformUnderfoot.type === "ground") {
             showMessage("Cannot change color on neutral ground.", 1000);
         } else {
@@ -138,26 +192,6 @@ window.addEventListener('keyup', (e) => {
     }
 });
 
-// Function to show a message on the screen
-function showMessage(msg, duration = 3000) {
-    const messageBox = document.getElementById('messageBox');
-    messageBox.textContent = msg;
-    messageBox.style.display = 'block'; // Make the message box visible
-    clearTimeout(messageTimeout); // Clear any existing timeout
-    // Set a timeout to hide the message after a specified duration
-    messageTimeout = setTimeout(() => {
-        messageBox.style.display = 'none'; // Hide the message box
-    }, duration);
-}
-
-// Collision detection function (AABB - Axis-Aligned Bounding Box)
-function checkCollision(rect1, rect2) {
-    // Check if the rectangles overlap on both X and Y axes
-    return rect1.x < rect2.x + rect2.width &&
-        rect1.x + rect1.width > rect2.x &&
-        rect1.y < rect2.y + rect2.height &&
-        rect1.y + rect1.height > rect2.y;
-}
 
 // Game update logic - called repeatedly to update game state
 function update() {
@@ -166,14 +200,14 @@ function update() {
     // Apply gravity to player's vertical velocity
     player.dy += player.gravity;
 
-    // Horizontal movement based on key states
+    // Horizontal movement based on key states and current speed (using getter)
     // Reset horizontal velocity each frame to prevent continuous sliding
     player.dx = 0;
     if (keys['ArrowLeft']) {
-        player.dx = -player.currentSpeed; // Move left
+        player.dx = -player.currentSpeed; // Move left using current speed getter
     }
     if (keys['ArrowRight']) {
-        player.dx = player.currentSpeed; // Move right
+        player.dx = player.currentSpeed; // Move right using current speed getter
     }
 
     // Update player position based on velocities
@@ -240,7 +274,7 @@ function update() {
         showMessage("You fell! Try again.", 2000);
         // Reset player color to initial and update abilities
         player.color = gameColors.MAGENTA;
-        updatePlayerAbilities();
+        player.jumpsAvailable = player.maxJumps;
     }
 }
 
@@ -295,7 +329,7 @@ function resizeCanvas() {
 window.onload = function () {
     resizeCanvas(); // Set initial canvas size based on window size
     window.addEventListener('resize', resizeCanvas); // Listen for window resize events
-    updatePlayerAbilities(); // Initialize player abilities based on starting color
+    player.jumpsAvailable = player.maxJumps;
     gameLoop(); // Start the main game loop
     showMessage("Welcome to Retro Jump! Land on a colored platform and press 'C' to change abilities!", 3000); // Show initial message
 };
