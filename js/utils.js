@@ -22,7 +22,7 @@ export function checkCollision(rect1, rect2) {
 }
 
 // Responsive canvas resizing
-export function resizeCanvas() {
+export function resizeCanvas(canvas) {
     const aspectRatio = 16 / 9; // Define the desired aspect ratio for your game
     let newWidth = window.innerWidth * 0.9; // Take 90% of window width
     let newHeight = window.innerHeight * 0.8; // Take 80% of window height

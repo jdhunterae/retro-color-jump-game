@@ -158,7 +158,7 @@ window.onload = function () {
     // Set initial player position relative to canvas height
     player.y = canvas.height - 70;
 
-    resizeCanvas(); // Set initial canvas size based on window size
+    resizeCanvas(canvas); // Set initial canvas size based on window size
     window.addEventListener('resize', resizeCanvas); // Listen for window resize events
 
     initInputListeners();
