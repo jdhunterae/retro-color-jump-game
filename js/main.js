@@ -1,26 +1,56 @@
 import { player } from './player.js';
-import { initInputListeners, keys, setCanJump, setCanChangeColor } from './input.js';
+import { initInputListeners, keys, canJump, setCanJump, canChangeColor, setCanChangeColor } from './input.js';
 import { gameColors } from './constants.js'; // Only need gameColors here for platform definitions
 import { showMessage, checkCollision, resizeCanvas } from './utils.js';
+import { loadLevel, getCurrentLevel, goToNextLevel, resetCurrentLevel } from './levelManager.js';
 
 // Get the canvas and its 2D rendering context
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Game state variables
-let gameRunning = true;
+// Game state enumeration
+const GameState = {
+    PLAYING: "PLAYING",
+    LEVEL_COMPLETE: "LEVEL_COMPLETE",
+    GAME_OVER: "GAME_OVER",
+};
+let currentGameState = GameState.PLAYING;
 
+// Platforms array - WILL BE INITIALIZED IN window.onload
+// Declared with 'let' so it can be reassigned later.
 let platforms = [];
 
 // Game update logic - called repeatedly to update game state
 function update() {
-    if (!gameRunning) return; // Stop updating if game is not running
+    // Only update game logic if in PLAYING state
+    if (currentGameState !== GameState.PLAYING) {
+        // Handle input for level progression/reset outside of PLAYING state
+        if (keys['Enter']) {
+            if (currentGameState === GameState.LEVEL_COMPLETE) {
+                if (goToNextLevel()) { // Attempt to load next level
+                    currentGameState = GameState.PLAYING; // If successful, resume playing
+                } else {
+                    // All levels completed, stay in LEVEL_COMPLETE or transition to a final state
+                    // The levelManager already shows a message.
+                }
+            } else if (currentGameState === GameState.GAME_OVER) {
+                resetCurrentLevel(); // Reset current level
+                currentGameState = GameState.PLAYING; // Resume playing
+            }
+            keys['Enter'] = false; // Consume the key press to prevent repeated triggers
+        }
+        if (keys['KeyR']) {
+            resetCurrentLevel(); // Reset current level
+            currentGameState = GameState.PLAYING; // Resume playing
+            keys['KeyR'] = false; // Consume the key press to prevent repeated triggers
+        }
+        return; // Stop updating game physics if not in PLAYING state
+    }
 
     // Apply gravity to player's vertical velocity
     player.dy += player.gravity;
 
     // Horizontal movement based on key states and current speed (using getter)
-    // Reset horizontal velocity each frame to prevent continuous sliding
     player.dx = 0;
     if (keys['ArrowLeft']) {
         player.dx = -player.currentSpeed; // Move left using current speed getter
@@ -30,31 +60,30 @@ function update() {
     }
 
     // Handle jump input
-    if (keys['Space']) {
-        // Allow jump if jumps are available based on current ability
-        if (player.jumpsAvailable > 0 && setCanJump) { // Use setCanJump to check flag
-            player.dy = player.currentJumpStrength; // Apply upward velocity using getter
-            player.jumpsAvailable--;                 // Consume a jump
-            player.onGround = false;                 // Player is no longer on the ground
-            player.platformUnderfoot = null;         // No platform underfoot while jumping
-            setCanJump(false);                       // Prevent immediate re-jumping until space is released
-        }
+    // Use `canJump` from input.js to prevent repeated jumps while holding Space.
+    // `player.jumpsAvailable` handles multiple jumps (e.g., double jump).
+    if (keys['Space'] && player.jumpsAvailable > 0 && canJump) {
+        player.dy = player.currentJumpStrength; // Apply upward velocity using getter
+        player.jumpsAvailable--;                 // Consume a jump
+        player.onGround = false;                 // Player is no longer on the ground
+        player.platformUnderfoot = null;         // No platform underfoot while jumping
+        setCanJump(false);                       // Prevent immediate re-jumping until Space is released
     }
 
     // Handle color change input
-    if (keys['KeyC']) {
-        if (setCanChangeColor) { // Use setCanChangeColor to check flag
-            // Only allow color change if player is on the ground AND on an 'ability' platform
-            if (player.onGround && player.platformUnderfoot && player.platformUnderfoot.type === 'ability') {
-                player.changeColor(player.platformUnderfoot.color); // Use player method to change color
-            } else if (player.onGround && player.platformUnderfoot && player.platformUnderfoot.type === 'ground') {
-                showMessage("Cannot change color on neutral ground.", 1000);
-            } else {
-                showMessage("Must be on an ability platform to change color.", 1000);
-            }
-            setCanChangeColor(false); // Prevent rapid cycling if 'C' is held down
+    // Use `canChangeColor` from input.js to prevent rapid color cycling while holding 'C'.
+    if (keys['KeyC'] && canChangeColor) {
+        // Only allow color change if player is on the ground AND on an 'ability' platform
+        if (player.onGround && player.platformUnderfoot && player.platformUnderfoot.type === 'ability') {
+            player.changeColor(player.platformUnderfoot.color); // Use player method to change color
+        } else if (player.onGround && player.platformUnderfoot && player.platformUnderfoot.type === 'ground') {
+            showMessage("Cannot change color on neutral ground.", 1000);
+        } else {
+            showMessage("Must be on an ability platform to change color.", 1000);
         }
+        setCanChangeColor(false); // Prevent rapid cycling if 'C' is held down
     }
+
 
     // Update player position based on velocities
     player.x += player.dx;
@@ -73,9 +102,15 @@ function update() {
     player.onGround = false;
     player.platformUnderfoot = null;
 
+    // Get current level data for platforms and goal
+    const currentLevel = getCurrentLevel();
+    if (!currentLevel) {
+        console.error("No current level data loaded!");
+        return;
+    }
 
     // Platform collision detection and resolution (all platforms are solid now)
-    for (const platform of platforms) {
+    for (const platform of currentLevel.platforms) {
         if (checkCollision(player, platform)) {
             // Collision from top (landing on a platform)
             if (player.dy > 0 && player.y + player.height - player.dy <= platform.y) {
@@ -108,10 +143,16 @@ function update() {
         player.jumpsAvailable = player.maxJumps;
     }
 
-    // If player falls below the canvas, reset position
+    // Check for goal collision
+    if (checkCollision(player, currentLevel.goal)) {
+        currentGameState = GameState.LEVEL_COMPLETE;
+        showMessage(`Level Complete! Press ENTER for next level or 'R' to restart.`, 3000);
+    }
+
+    // Check for fall-off-screen (fail state)
     if (player.y > canvas.height) {
-        showMessage("You fell! Try again.", 2000);
-        player.reset(canvas.height);
+        currentGameState = GameState.GAME_OVER;
+        showMessage("Game Over! You fell. Press ENTER or 'R' to restart.", 3000);
     }
 }
 
@@ -120,11 +161,18 @@ function draw() {
     // Clear canvas for the new frame
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    const currentLevel = getCurrentLevel();
+    if (!currentLevel) return; // Don't draw if no level data
+
     // Draw platforms
-    for (const platform of platforms) {
+    for (const platform of currentLevel.platforms) {
         ctx.fillStyle = platform.color;
         ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
     }
+
+    // Draw goal
+    ctx.fillStyle = currentLevel.goal.color;
+    ctx.fillRect(currentLevel.goal.x, currentLevel.goal.y, currentLevel.goal.width, currentLevel.goal.height);
 
     // Draw player using its current color
     ctx.fillStyle = player.color;
@@ -138,32 +186,22 @@ function gameLoop() {
     requestAnimationFrame(gameLoop); // Request the next frame, creating a smooth animation loop
 }
 
+
 // Initialize game on window load
 window.onload = function () {
-    // Set initial canvas dimensions (will be resized later for responsiveness)
+    // Set initial canvas dimensions
     canvas.width = 800;
     canvas.height = 450;
 
-    // Set initial player position relative to canvas height
-    player.y = canvas.height - 70;
-
-    // Platforms array - defined here as it's part of the main game world
-    platforms = [
-        // Ground platform - always solid, player cannot change color to this.
-        { x: 0, y: canvas.height - 40, width: canvas.width, height: 40, color: gameColors.GROUND, type: 'ground' },
-        // Other platforms with specific colors that grant abilities when stood upon
-        { x: 100, y: canvas.height - 150, width: 120, height: 20, color: gameColors.BLUE, type: 'ability' },
-        { x: 300, y: canvas.height - 250, width: 100, height: 20, color: gameColors.MAGENTA, type: 'ability' },
-        { x: 500, y: canvas.height - 180, width: 150, height: 20, color: gameColors.BLUE, type: 'ability' },
-        { x: 650, y: canvas.height - 300, width: 80, height: 20, color: gameColors.MAGENTA, type: 'ability' },
-        { x: 20, y: canvas.height - 350, width: 90, height: 20, color: gameColors.YELLOW, type: 'ability' }
-    ];
-
     resizeCanvas(canvas); // Set initial canvas size based on window size
-    window.addEventListener('resize', resizeCanvas); // Listen for window resize events
+    window.addEventListener('resize', () => resizeCanvas(canvas)); // Listen for window resize events
 
-    initInputListeners();
-    player.jumpsAvailable = player.maxJumps;
+    initInputListeners(); // Initialize keyboard input listeners
+
+    // Load the first level
+    loadLevel(0);
+    player.jumpsAvailable = player.maxJumps; // Initialize jumps available for starting color (WHITE)
+
     gameLoop(); // Start the main game loop
-    showMessage("Welcome to Retro Jump! Land on a colored platform and press 'C' to change abilities!", 3000); // Show initial message
+    showMessage("Welcome! Land on a colored platform and press 'C' to change abilities!", 3000); // Show initial message
 };

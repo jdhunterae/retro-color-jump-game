@@ -1,11 +1,20 @@
 // Define the game's color palette
 export const gameColors = {
-    MAGENTA: '#FF00FF', // Player's initial color, also an ability color
-    BLUE: '#0099FF',    // Another ability color
-    YELLOW: "#FFCC00",  // Added back for future use/example
-    WHITE: '#FFFFFF',   // New default color with no special abilities
-    GROUND: '#00CC00',  // Special color for the ground (always solid)
-    BACKGROUND: '#333333' // Canvas background color
+    MAGENTA: '#FF00FF',    // Player's initial color, also an ability color
+    BLUE: '#0099FF',       // Another ability color
+    YELLOW: "#FFCC00",     // Added back for future use/example
+    WHITE: '#FFFFFF',      // New default color with no special abilities
+    GROUND: '#00CC00',     // Special color for the ground (always solid)
+    BACKGROUND: '#333333', // Canvas background color
+
+    // Additional retro-themed colors:
+    CYAN: '#00FFFF',       // Bright cyan for portals, energy fields, or water
+    ORANGE: '#FF6600',     // Strong orange for hazard zones or projectiles
+    RED: '#FF0033',        // Deep arcade red for enemies, spikes, or warnings
+    PURPLE: '#9900CC',     // Dark purple for shadow platforms or secret areas
+    GREEN: '#66FF33',      // Neon green for power-ups or healing items
+    DARK_GRAY: '#222222',  // For shadows, UI borders, or obstacles
+    LIGHT_GRAY: '#AAAAAA', // For neutral platforms or inactive states
 };
 
 // Define the abilities associated with each color
@@ -32,9 +41,9 @@ export const abilities = {
         canStunEnemies: false,
         message: "Ability: High Jumap & Double Jump!"
     },
-    [gameColors.YELLOW]: {
+    [gameColors.CYAN]: {
         speedModifier: -2, // -2 to base speed
-        jumpStrengthModifier: 1, // +1 (less negative) to base jump strength = lower jump
+        jumpStrengthModifier: 2, // +2 (less negative) to base jump strength = lower jump
         maxJumpsModifier: 0, // Single jump / no additional jumps
         canStunEnemies: false,
         message: "Ability: Slow and Low Jump!"

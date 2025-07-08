@@ -51,9 +51,9 @@ export const player = {
     },
 
     // Reset player state (e.g. after falling)
-    reset(canvasHeight) {
-        this.x = 50;
-        this.y = canvasHeight - 70;
+    reset(startX, startY) {
+        this.x = startX;
+        this.y = startY;
         this.dx = 0;
         this.dy = 0;
         this.color = gameColors.WHITE // Reset to initial color
