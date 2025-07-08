@@ -1,4 +1,3 @@
-// js/utils.js
 import { abilities } from './constants.js'; // Import abilities to get their messages
 
 // Function to show a message on the screen
@@ -30,9 +29,9 @@ export function showMessage(msg, duration = 3000, type = 'info', linger = false)
 export function checkCollision(rect1, rect2) {
     // Check if the rectangles overlap on both X and Y axes
     return rect1.x < rect2.x + rect2.width &&
-           rect1.x + rect1.width > rect2.x &&
-           rect1.y < rect2.y + rect2.height &&
-           rect1.y + rect1.height > rect2.y;
+        rect1.x + rect1.width > rect2.x &&
+        rect1.y < rect2.y + rect2.height &&
+        rect1.y + rect1.height > rect2.y;
 }
 
 // Responsive canvas resizing
@@ -72,7 +71,7 @@ export function updateAbilityDisplay(player) {
             listItem.appendChild(colorBox);
 
             const textSpan = document.createElement('span');
-            textSpan.textContent = abilityInfo.message;
+            textSpan.textContent = abilityInfo.shortMessage;
             listItem.appendChild(textSpan);
 
             abilitiesContainer.appendChild(listItem);

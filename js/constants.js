@@ -25,27 +25,31 @@ export const abilities = {
         jumpStrengthModifier: 0,
         maxJumps: 1, // Directly specify max jumps
         canStunEnemies: false,
-        message: "Ability: Default (No Special Abilities)"
+        message: "Ability: Default (No Special Abilities)",
+        shortMessage: "Default" // New: Short version for ability list
     },
     [gameColors.MAGENTA]: {
         speedModifier: 2, // +2 to base speed
         jumpStrengthModifier: 0, // No change to base jump strength
         maxJumps: 1, // Directly specify max jumps
         canStunEnemies: true, // Placeholder for future enemy interaction
-        message: "Ability: Increased Speed!"
+        message: "Ability: Increased Speed!",
+        shortMessage: "Increased Speed" // New: Short version for ability list
     },
     [gameColors.BLUE]: {
         speedModifier: 0, // No change to base speed
         jumpStrengthModifier: -3, // -3 (more negative) to base jump strength = higher jump
         maxJumps: 2, // Directly specify max jumps (double jump)
         canStunEnemies: false,
-        message: "Ability: High Jump & Double Jump!"
+        message: "Ability: High Jump & Double Jump!",
+        shortMessage: "High/Double Jump" // New: Short version for ability list
     },
     [gameColors.CYAN]: {
         speedModifier: -2, // -2 to base speed
         jumpStrengthModifier: 2, // +2 (less negative) to base jump strength = lower jump
         maxJumps: 1, // Directly specify max jumps
         canStunEnemies: false,
-        message: "Ability: Slow and Low Jump!"
+        message: "Ability: Slow and Low Jump!",
+        shortMessage: "Slow/Low Jump" // New: Short version for ability list
     },
 };
