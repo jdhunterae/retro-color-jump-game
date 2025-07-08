@@ -7,7 +7,7 @@ export const player = {
     y: 0, // Initial y will be set based on canvas height in main.js
     width: 30,
     height: 30,
-    color: gameColors.MAGENTA, // Player's current active color, starts as Magenta
+    color: gameColors.WHITE, // Player's current active color, starts as White
     dx: 0, // Horizontal velocity
     dy: 0, // Vertical velocity
     gravity: 0.3,
@@ -56,7 +56,7 @@ export const player = {
         this.y = canvasHeight - 70;
         this.dx = 0;
         this.dy = 0;
-        this.color = gameColors.MAGENTA // Reset to initial color
+        this.color = gameColors.WHITE // Reset to initial color
         this.jumpsAvailable = this.maxJumps; // Reset jumps for new (initial) color
         this.onGround = false;
         this.platformUnderfoot = null;

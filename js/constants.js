@@ -1,15 +1,23 @@
 // Define the game's color palette
 export const gameColors = {
     MAGENTA: '#FF00FF', // Player's initial color, also an ability color
-    BLUE: '#0099FF', // Another ability color
-    YELLOW: "#FFCC00",
-    GROUND: '#00CC00', // Special color for the ground (always solid)
+    BLUE: '#0099FF',    // Another ability color
+    YELLOW: "#FFCC00",  // Added back for future use/example
+    WHITE: '#FFFFFF',   // New default color with no special abilities
+    GROUND: '#00CC00',  // Special color for the ground (always solid)
     BACKGROUND: '#333333' // Canvas background color
 };
 
 // Define the abilities associated with each color
 // This is where you'd add new color-ability mappings
 export const abilities = {
+    [gameColors.WHITE]: { // default ability with no modifiers
+        speedModifier: 0,
+        jumpStrengthModifier: 0,
+        maxJumpsModifier: 0,
+        canStunEnemies: false,
+        message: "Ability: Default (No Special Abilities)"
+    },
     [gameColors.MAGENTA]: {
         speedModifier: 2, // +2 to base speed
         jumpStrengthModifier: 0, // No change to base jump strength
