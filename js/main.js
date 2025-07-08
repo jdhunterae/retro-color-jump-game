@@ -10,18 +10,7 @@ const ctx = canvas.getContext('2d');
 // Game state variables
 let gameRunning = true;
 
-// Platforms array - defined here as it's part of the main game world
-const platforms = [
-    // Ground platform - always solid, player cannot change color to this.
-    { x: 0, y: canvas.height - 40, width: canvas.width, height: 40, color: gameColors.GROUND, type: 'ground' },
-    // Other platforms with specific colors that grant abilities when stood upon
-    { x: 100, y: canvas.height - 150, width: 120, height: 20, color: gameColors.BLUE, type: 'ability' },
-    { x: 300, y: canvas.height - 250, width: 100, height: 20, color: gameColors.MAGENTA, type: 'ability' },
-    { x: 500, y: canvas.height - 180, width: 150, height: 20, color: gameColors.BLUE, type: 'ability' },
-    { x: 650, y: canvas.height - 300, width: 80, height: 20, color: gameColors.MAGENTA, type: 'ability' },
-    { x: 20, y: canvas.height - 350, width: 90, height: 20, color: gameColors.YELLOW, type: 'ability' }
-];
-
+let platforms = [];
 
 // Game update logic - called repeatedly to update game state
 function update() {
@@ -157,6 +146,18 @@ window.onload = function () {
 
     // Set initial player position relative to canvas height
     player.y = canvas.height - 70;
+
+    // Platforms array - defined here as it's part of the main game world
+    platforms = [
+        // Ground platform - always solid, player cannot change color to this.
+        { x: 0, y: canvas.height - 40, width: canvas.width, height: 40, color: gameColors.GROUND, type: 'ground' },
+        // Other platforms with specific colors that grant abilities when stood upon
+        { x: 100, y: canvas.height - 150, width: 120, height: 20, color: gameColors.BLUE, type: 'ability' },
+        { x: 300, y: canvas.height - 250, width: 100, height: 20, color: gameColors.MAGENTA, type: 'ability' },
+        { x: 500, y: canvas.height - 180, width: 150, height: 20, color: gameColors.BLUE, type: 'ability' },
+        { x: 650, y: canvas.height - 300, width: 80, height: 20, color: gameColors.MAGENTA, type: 'ability' },
+        { x: 20, y: canvas.height - 350, width: 90, height: 20, color: gameColors.YELLOW, type: 'ability' }
+    ];
 
     resizeCanvas(canvas); // Set initial canvas size based on window size
     window.addEventListener('resize', resizeCanvas); // Listen for window resize events
