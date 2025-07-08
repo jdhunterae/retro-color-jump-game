@@ -1,4 +1,4 @@
-import { gameColors } from "./constants";
+import { gameColors } from "./constants.js";
 
 
 // Define your game levels here
