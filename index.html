@@ -24,6 +24,30 @@
 
     <div id="messageBox" class="message-box"></div>
 
+    <div id="introScreen" class="overlay">
+        <div class="intro-content">
+            <h2>Welcome to Retro Color Jump!</h2>
+            <p>Navigate platforms, change abilities, and reach the goal!</p>
+            <h3>Controls:</h3>
+            <ul>
+                <li><strong>Arrow Keys:</strong> Move Left/Right</li>
+                <li><strong>Spacebar:</strong> Jump</li>
+                <li><strong>C:</strong> Change Ability (must be on an ability platform)</li>
+                <li><strong>Enter:</strong> Next Level (after goal)</li>
+                <li><strong>R:</strong> Restart Level (anytime)</li>
+            </ul>
+            <p>Land on colored platforms and press "C" to gain new abilities!</p>
+            <p>Press <strong>ENTER</strong> to start!</p>
+        </div>
+    </div>
+
+    <div id="abilityList">
+        <h3>Known Abilities:</h3>
+        <ul id="abilitiesContainer">
+            <!-- Abilities will be dynamically added here-->
+        </ul>
+    </div>
+
     <script type="module" src="js/main.js"></script>
 </body>
 
