@@ -12,11 +12,11 @@ export function loadLevel(index) {
         currentLevelData = levels[currentLevelIndex];
         // Reset player to the starting position for the new level
         player.reset(currentLevelData.playerStart.x, currentLevelData.playerStart.y);
-        showMessage(`Loading ${currentLevelData.name}...`, 2000);
+        showMessage(`Loading ${currentLevelData.name}...`, 2000, "info");
         return true; // Level loaded successfully
     } else if (index >= levels.length) {
         // All levels completed
-        showMessage("Congratulations! You completed all levels!", 5000);
+        showMessage("Congratulations! You completed all levels!", 5000, "completion");
         // optionally, loop back to the first level or show a final screen
         currentLevelIndex = 0; // Loop back to first level
         currentLevelData = levels[currentLevelIndex];
@@ -24,7 +24,7 @@ export function loadLevel(index) {
         return false; // No more levels
     } else {
         console.error("Attempted to load invalid level index:", index);
-        showMessage("Error: Could not load level.", 2000);
+        showMessage("Error: Could not load level.", 2000, "error");
         return false; // Invalid index
     }
 }

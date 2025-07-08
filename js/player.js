@@ -67,13 +67,13 @@ export const player = {
     // Handle color change
     changeColor(newColor) {
         if (this.color === newColor) {
-            showMessage("Already this color!", 1000);
+            showMessage("Already this color!", 1000, "warning");
             return false; // Color not changed
         }
 
         this.color = newColor;
         this.jumpsAvailable = this.maxJumps; // Reset jumps for the new ability
-        showMessage(this.abilityMessage, 1500);
+        showMessage(this.abilityMessage, 1500, "success");
         this.learnedAbilities.add(newColor); // New: Add the new color
         return true; // Color successfully changed
     }

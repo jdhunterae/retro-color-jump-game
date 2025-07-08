@@ -3,9 +3,15 @@ import { abilities } from './constants.js';
 // Function to show a message on the screen
 let messageTimeout;
 
-export function showMessage(msg, duration = 3000) {
+export function showMessage(msg, duration = 3000, type = 'info') {
     const messageBox = document.getElementById('messageBox');
     messageBox.textContent = msg;
+
+    // Remove all previous type classes
+    messageBox.className = 'message-box'; // Reset to base class
+    // Add the new type class
+    messageBox.classList.add(type);
+    
     messageBox.style.display = 'block'; // Make the message box visible
     clearTimeout(messageTimeout); // Clear any existing timeout
     // Set a timeout to hide the message after a specified duration

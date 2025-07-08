@@ -30,7 +30,7 @@ function update() {
             if (keys['Enter']) {
                 currentGameState = GameState.PLAYING;
                 document.getElementById('introScreen').style.display = 'none'; // Hide intro screen
-                showMessage("Game Started! Good luck!", 2000);
+                showMessage("Game Started! Good luck!", 2000, "info");
                 keys['Enter'] = false; // Consume key press
             }
             return; // Don't update game physics during intro
@@ -65,9 +65,9 @@ function update() {
                         updateAbilityDisplay(player); // New: Update display when color changes
                     }
                 } else if (player.onGround && player.platformUnderfoot && player.platformUnderfoot.type === 'ground') {
-                    showMessage("Cannot change color on neutral ground.", 1000);
+                    showMessage("Cannot change color on neutral ground.", 1000, "warning");
                 } else {
-                    showMessage("Must be on an ability platform to change color.", 1000);
+                    showMessage("Must be on an ability platform to change color.", 1000, "warning");
                 }
                 setCanChangeColor(false); // Prevent rapid cycling if 'C' is held down
             }
@@ -134,13 +134,13 @@ function update() {
             // Check for goal collision
             if (checkCollision(player, currentLevel.goal)) {
                 currentGameState = GameState.LEVEL_COMPLETE;
-                showMessage(`Level Complete! Press ENTER for next level or 'R' to restart.`, 3000);
+                showMessage(`Level Complete! Press ENTER for next level or 'R' to restart.`, 3000, "completion");
             }
 
             // Check for fall-off-screen (fail state)
             if (player.y > canvas.height) {
                 currentGameState = GameState.GAME_OVER;
-                showMessage("Game Over! You fell. Press ENTER or 'R' to restart.", 3000);
+                showMessage("Game Over! You fell. Press ENTER or 'R' to restart.", 3000, "error");
             }
             break; // End of PLAYING state
 
