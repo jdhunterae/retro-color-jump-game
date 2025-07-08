@@ -134,13 +134,13 @@ function update() {
             // Check for goal collision
             if (checkCollision(player, currentLevel.goal)) {
                 currentGameState = GameState.LEVEL_COMPLETE;
-                showMessage(`Level Complete! Press ENTER for next level or 'R' to restart.`, 3000, "completion");
+                showMessage(`Level Complete! Press ENTER for next level or 'R' to restart.`, 3000, "completion", true);
             }
 
             // Check for fall-off-screen (fail state)
             if (player.y > canvas.height) {
                 currentGameState = GameState.GAME_OVER;
-                showMessage("Game Over! You fell. Press ENTER or 'R' to restart.", 3000, "error");
+                showMessage("Game Over! You fell. Press ENTER or 'R' to restart.", 3000, "error", true);
             }
             break; // End of PLAYING state
 

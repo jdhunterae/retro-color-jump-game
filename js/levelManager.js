@@ -16,7 +16,7 @@ export function loadLevel(index) {
         return true; // Level loaded successfully
     } else if (index >= levels.length) {
         // All levels completed
-        showMessage("Congratulations! You completed all levels!", 5000, "completion");
+        showMessage("Congratulations! You completed all levels!", 5000, "completion", true);
         // optionally, loop back to the first level or show a final screen
         currentLevelIndex = 0; // Loop back to first level
         currentLevelData = levels[currentLevelIndex];
