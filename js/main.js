@@ -1,7 +1,7 @@
 import { player } from './player.js';
 import { initInputListeners, keys, canJump, setCanJump, canChangeColor, setCanChangeColor } from './input.js';
 import { gameColors } from './constants.js'; // Only need gameColors here for platform definitions
-import { showMessage, checkCollision, resizeCanvas, updateAbilityDisplay } from './utils.js'; // New: import updateAbilityDisplay
+import { showMessage, checkCollision, resizeCanvas, updateAbilityDisplay } from './utils.js';
 import { loadLevel, getCurrentLevel, goToNextLevel, resetCurrentLevel } from './levelManager.js';
 
 // Get the canvas and its 2D rendering context
@@ -10,16 +10,17 @@ const ctx = canvas.getContext('2d');
 
 // Game state enumeration
 const GameState = {
-    INTRO: 'INTRO', // New: Initial state for instructions
+    INTRO: 'INTRO',
     PLAYING: 'PLAYING',
     LEVEL_COMPLETE: 'LEVEL_COMPLETE',
     GAME_OVER: 'GAME_OVER'
 };
-let currentGameState = GameState.INTRO; // Start in INTRO state
+
+let currentGameState = GameState.INTRO;
 
 // Platforms array - WILL BE INITIALIZED IN window.onload
-// Declared with 'let' so it can be reassigned later.
 let platforms = [];
+
 
 // Game update logic - called repeatedly to update game state
 function update() {
@@ -30,7 +31,7 @@ function update() {
             if (keys['Enter']) {
                 currentGameState = GameState.PLAYING;
                 document.getElementById('introScreen').style.display = 'none'; // Hide intro screen
-                showMessage("Game Started! Good luck!", 2000, "info");
+                showMessage("Game Started! Good luck!", 2000, 'info');
                 keys['Enter'] = false; // Consume key press
             }
             return; // Don't update game physics during intro
@@ -62,12 +63,12 @@ function update() {
                 // Only allow color change if player is on the ground AND on an 'ability' platform
                 if (player.onGround && player.platformUnderfoot && player.platformUnderfoot.type === 'ability') {
                     if (player.changeColor(player.platformUnderfoot.color)) { // Use player method to change color
-                        updateAbilityDisplay(player); // New: Update display when color changes
+                        updateAbilityDisplay(player); // Update display when color changes
                     }
                 } else if (player.onGround && player.platformUnderfoot && player.platformUnderfoot.type === 'ground') {
-                    showMessage("Cannot change color on neutral ground.", 1000, "warning");
+                    showMessage("Cannot change color on neutral ground.", 1000, 'warning');
                 } else {
-                    showMessage("Must be on an ability platform to change color.", 1000, "warning");
+                    showMessage("Must be on an ability platform to change color.", 1000, 'warning');
                 }
                 setCanChangeColor(false); // Prevent rapid cycling if 'C' is held down
             }
@@ -97,29 +98,36 @@ function update() {
                 return;
             }
 
-            // Platform collision detection and resolution (all platforms are solid now)
-            for (const platform of currentLevel.platforms) {
-                if (checkCollision(player, platform)) {
+            // Combine all regular platforms and the goal platform for collision detection
+            // The spread operator (...) creates a new array combining elements from both.
+            const allCollidableObjects = [...currentLevel.platforms, currentLevel.goal];
+
+            // Platform collision detection and resolution (now includes goal)
+            for (const obj of allCollidableObjects) { // Iterate through all collidable objects
+                if (checkCollision(player, obj)) {
                     // Collision from top (landing on a platform)
-                    if (player.dy > 0 && player.y + player.height - player.dy <= platform.y) {
-                        player.y = platform.y - player.height; // Snap player to the top of the platform
+                    // Check if player was above the object in the previous frame and is falling
+                    if (player.dy > 0 && player.y + player.height - player.dy <= obj.y) {
+                        player.y = obj.y - player.height; // Snap player to the top of the object
                         player.dy = 0; // Stop vertical movement
                         player.onGround = true; // Player is now on the ground
-                        player.platformUnderfoot = platform; // Store the platform object
+                        player.platformUnderfoot = obj; // Store the object player is standing on
                         landedThisFrame = true; // Mark that player landed
                     }
-                    // Collision from bottom (jumping into a platform from below)
-                    else if (player.dy < 0 && player.y - player.dy >= platform.y + platform.height) {
-                        player.y = platform.y + platform.height; // Snap player to the bottom of the platform
+                    // Collision from bottom (jumping into an object from below)
+                    // Check if player was below the object in the previous frame and is moving up
+                    else if (player.dy < 0 && player.y - player.dy >= obj.y + obj.height) {
+                        player.y = obj.y + obj.height; // Snap player to the bottom of the object
                         player.dy = 0; // Stop upward movement (hit head)
                     }
-                    // Collision from sides (moving horizontally into a platform)
+                    // Collision from sides (moving horizontally into an object)
+                    // Check if player was to the left/right of the object in the previous frame
                     else {
-                        if (player.dx > 0 && player.x + player.width - player.dx <= platform.x) {
-                            player.x = platform.x - player.width; // Snap to left side of platform
+                        if (player.dx > 0 && player.x + player.width - player.dx <= obj.x) {
+                            player.x = obj.x - player.width; // Snap to left side of object
                             player.dx = 0; // Stop horizontal movement
-                        } else if (player.dx < 0 && player.x - player.dx >= platform.x + platform.width) {
-                            player.x = platform.x + platform.width; // Snap to right side of platform
+                        } else if (player.dx < 0 && player.x - player.dx >= obj.x + obj.width) {
+                            player.x = obj.x + obj.width; // Snap to right side of object
                             player.dx = 0; // Stop horizontal movement
                         }
                     }
@@ -131,16 +139,17 @@ function update() {
                 player.jumpsAvailable = player.maxJumps;
             }
 
-            // Check for goal collision
-            if (checkCollision(player, currentLevel.goal)) {
+            // Check for goal completion AFTER all collision resolution has occurred
+            // Player must be on the ground AND the platform they are standing on must be the goal.
+            if (player.onGround && player.platformUnderfoot === currentLevel.goal) {
                 currentGameState = GameState.LEVEL_COMPLETE;
-                showMessage(`Level Complete! Press ENTER for next level or 'R' to restart.`, 3000, "completion", true);
+                showMessage(`Level Complete! Press ENTER for next level or 'R' to restart.`, 3000, 'completion', true);
             }
 
             // Check for fall-off-screen (fail state)
             if (player.y > canvas.height) {
                 currentGameState = GameState.GAME_OVER;
-                showMessage("Game Over! You fell. Press ENTER or 'R' to restart.", 3000, "error", true);
+                showMessage("Game Over! You fell. Press ENTER or 'R' to restart.", 3000, 'error', true);
             }
             break; // End of PLAYING state
 
@@ -217,9 +226,9 @@ window.onload = function () {
 
     // Load the first level
     loadLevel(0);
-    // New: Initialize player's learned abilities with WHITE
+    // Initialize player's learned abilities with WHITE
     player.learnedAbilities.add(gameColors.WHITE);
-    updateAbilityDisplay(player); // New: Update the ability display immediately
+    updateAbilityDisplay(player); // Update the ability display immediately
 
     gameLoop(); // Start the main game loop
     // No initial showMessage here, as the intro screen handles it.
