@@ -1,6 +1,5 @@
 import { gameColors } from "./constants.js";
 
-
 // Define your game levels here
 // Each level object contains:
 // - name: A descriptive name for the level

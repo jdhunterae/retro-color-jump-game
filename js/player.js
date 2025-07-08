@@ -16,7 +16,6 @@ export const player = {
     baseJumpStrength: -10, // Negative for upward movement
     // Dynamic abilities - these will be updated based on player.color
     jumpsAvailable: 1, // How many jumps player has left in current airtime
-    baseMaxJumps: 1, // Max jumps for current color (1 for single, 2 for double)
     onGround: false, // True if player is currently on a platform
     platformUnderfoot: null, // Stores the platform object player is standing on
 
@@ -32,10 +31,11 @@ export const player = {
         return this.baseJumpStrength + (currentAbility ? currentAbility.jumpStrengthModifier : 0);
     },
 
-    // Getter for current maxJumps, applying modifier
+    // Getter for max jumps, applying modifier
     get maxJumps() {
         const currentAbility = abilities[this.color];
-        return this.baseMaxJumps + (currentAbility ? currentAbility.maxJumpsModifier : 0);
+        // Directly return maxJumps from the ability, default to 1 if not found
+        return currentAbility ? currentAbility.maxJumps : 1;
     },
 
     // Getter for canStunEnemies, applying ability modifier
@@ -56,7 +56,7 @@ export const player = {
         this.y = startY;
         this.dx = 0;
         this.dy = 0;
-        this.color = gameColors.WHITE // Reset to initial color
+        this.color = gameColors.WHITE; // Reset to initial color
         this.jumpsAvailable = this.maxJumps; // Reset jumps for new (initial) color
         this.onGround = false;
         this.platformUnderfoot = null;
@@ -70,7 +70,7 @@ export const player = {
         }
 
         this.color = newColor;
-        this.jumpsAvailable = this.maxJumps;
+        this.jumpsAvailable = this.maxJumps; // Reset jumps for the new ability
         showMessage(this.abilityMessage, 1500);
         return true; // Color successfully changed
     }

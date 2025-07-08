@@ -24,5 +24,14 @@ export function initInputListeners() {
 
     window.addEventListener('keyup', (e) => {
         keys[e.code] = false;
+
+        // Reset canJump and canChangeColor flags on keyup
+        if (e.code === 'Space') {
+            canJump = true; // IMPORTANT: Reset canJump when Spacebar is released
+        }
+
+        if (e.code === 'KeyC') {
+            canChangeColor = true; // IMPORTANT: Reset canChangeColor when 'C' is released
+        }
     });
 }

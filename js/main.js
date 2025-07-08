@@ -1,6 +1,5 @@
 import { player } from './player.js';
 import { initInputListeners, keys, canJump, setCanJump, canChangeColor, setCanChangeColor } from './input.js';
-import { gameColors } from './constants.js'; // Only need gameColors here for platform definitions
 import { showMessage, checkCollision, resizeCanvas } from './utils.js';
 import { loadLevel, getCurrentLevel, goToNextLevel, resetCurrentLevel } from './levelManager.js';
 
@@ -10,9 +9,9 @@ const ctx = canvas.getContext('2d');
 
 // Game state enumeration
 const GameState = {
-    PLAYING: "PLAYING",
-    LEVEL_COMPLETE: "LEVEL_COMPLETE",
-    GAME_OVER: "GAME_OVER",
+    PLAYING: 'PLAYING',
+    LEVEL_COMPLETE: 'LEVEL_COMPLETE',
+    GAME_OVER: 'GAME_OVER'
 };
 let currentGameState = GameState.PLAYING;
 
@@ -39,11 +38,13 @@ function update() {
             }
             keys['Enter'] = false; // Consume the key press to prevent repeated triggers
         }
+
         if (keys['KeyR']) {
             resetCurrentLevel(); // Reset current level
             currentGameState = GameState.PLAYING; // Resume playing
             keys['KeyR'] = false; // Consume the key press to prevent repeated triggers
         }
+
         return; // Stop updating game physics if not in PLAYING state
     }
 
@@ -62,7 +63,7 @@ function update() {
     // Handle jump input
     // Use `canJump` from input.js to prevent repeated jumps while holding Space.
     // `player.jumpsAvailable` handles multiple jumps (e.g., double jump).
-    if (keys['Space'] && player.jumpsAvailable > 0 && canJump) {
+    if (keys['Space'] && canJump && player.jumpsAvailable > 0) {
         player.dy = player.currentJumpStrength; // Apply upward velocity using getter
         player.jumpsAvailable--;                 // Consume a jump
         player.onGround = false;                 // Player is no longer on the ground
@@ -83,7 +84,6 @@ function update() {
         }
         setCanChangeColor(false); // Prevent rapid cycling if 'C' is held down
     }
-
 
     // Update player position based on velocities
     player.x += player.dx;
@@ -185,7 +185,6 @@ function gameLoop() {
     draw();   // Draw updated state
     requestAnimationFrame(gameLoop); // Request the next frame, creating a smooth animation loop
 }
-
 
 // Initialize game on window load
 window.onload = function () {
