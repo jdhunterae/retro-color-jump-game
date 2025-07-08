@@ -15,6 +15,7 @@ let messageTimeout;
 const gameColors = {
     MAGENTA: '#FF00FF', // Player's initial color, also an ability color
     BLUE: '#0099FF', // Another ability color
+    YELLOW: "#FFCC00",
     GROUND: '#00CC00', // Special color for the ground (always solid)
     BACKGROUND: '#333333' // Canvas background color
 };
